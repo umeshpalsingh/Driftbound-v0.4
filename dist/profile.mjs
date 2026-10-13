@@ -1,0 +1,12 @@
+import {LEVELS,RIDERS,clamp} from './engine.mjs';
+export const SAVE_KEY='driftbound.progress.v3';
+const integer=(v,max=10000000)=>Number.isFinite(v)?clamp(Math.floor(v),0,max):0;
+export function createProfile(raw=null,legacy=null){const p={version:3,rider:0,level:0,coins:0,diamonds:0,owned:['maya'],claimed:[],completed:{}};const src=raw&&typeof raw==='object'?raw:legacy&&typeof legacy==='object'?legacy:null;if(!src)return p;
+ p.rider=integer(src.rider,RIDERS.length-1);p.level=integer(src.level,LEVELS.length-1);p.coins=integer(src.coins);p.diamonds=integer(src.diamonds);p.owned=raw?Array.from(new Set(['maya',...(Array.isArray(src.owned)?src.owned:[]).filter(id=>RIDERS.some(r=>r.id===id))])):['maya','kai','nova'];p.claimed=Array.isArray(src.claimed)?[...new Set(src.claimed.filter(x=>typeof x==='string'&&x.length<80))]:[];
+ for(let i=0;i<LEVELS.length;i++){const c=src.completed?.[i];if(c&&Number.isFinite(c.score)&&Number.isFinite(c.time)&&c.time>0)p.completed[i]={score:integer(c.score),time:c.time,medals:clamp(integer(c.medals),1,3),rewarded:raw?!!c.rewarded:true,mastered:raw?!!c.mastered:c.medals>=3};}
+ if(!p.owned.includes(RIDERS[p.rider].id))p.rider=0;if(p.level>0&&!p.completed[p.level-1])p.level=0;return p;}
+export const unlocked=(p,i)=>!!LEVELS[i]&&(i===0||!!p.completed[i-1]);
+export function purchaseRider(p,index){const r=RIDERS[index];if(!r)return {ok:false,reason:'Unknown rider.'};if(p.owned.includes(r.id)){p.rider=index;return {ok:true,owned:true};}if(p.coins<r.coins||p.diamonds<r.diamonds)return {ok:false,reason:'Keep riding to earn the remaining coins and diamonds.'};p.coins-=r.coins;p.diamonds-=r.diamonds;p.owned.push(r.id);p.rider=index;return {ok:true,owned:false};}
+export function settleRun(p,run){if(run.settled||!run.active)return {coins:0,diamonds:0,bonus:0,first:false};run.settled=true;const previous=p.completed[run.levelIndex];let diamonds=0;for(const id of run.gemIds)if(!p.claimed.includes(id)){p.claimed.push(id);diamonds++;}const finished=run.status==='finished';const first=finished&&!previous;let bonus=finished?(first?80+run.levelIndex*15:25):0;
+ if(finished){if(!previous?.rewarded)diamonds+=2;if(run.medals===3&&!previous?.mastered)diamonds++;p.completed[run.levelIndex]={score:Math.max(previous?.score||0,Math.floor(run.score)),time:Math.min(previous?.time||Infinity,run.time),medals:Math.max(previous?.medals||0,run.medals),rewarded:true,mastered:!!previous?.mastered||run.medals===3};}
+ const coins=integer(run.coins)+bonus;p.coins+=coins;p.diamonds+=diamonds;return {coins,diamonds,bonus,first};}

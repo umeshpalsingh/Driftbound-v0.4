@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {Run,RIDERS} from '../dist/engine.mjs';
+import {createProfile,purchaseRider,settleRun,unlocked} from '../dist/profile.mjs';
+const p=createProfile();assert.deepEqual(p.owned,['maya']);assert(!unlocked(p,1));assert(!purchaseRider(p,3).ok);assert.equal(p.coins,0);
+p.coins=1000;p.diamonds=10;assert(purchaseRider(p,3).ok);assert.equal(p.coins,250);assert.equal(p.diamonds,4);assert(p.owned.includes('sora'));assert(purchaseRider(p,3).ok);assert.equal(p.coins,250,'owned selection does not charge twice');assert(!purchaseRider(p,5).ok);assert.equal(p.coins,250);
+const run=new Run();run.active=true;run.status='finished';run.coins=42;run.gemIds=['frostpine:air1'];run.score=2000;run.nearMisses=8;run.time=40;
+const reward=settleRun(p,run);assert.equal(reward.coins,122);assert.equal(reward.diamonds,4,'rare pickup + first clear + first mastery');const money=p.coins,gems=p.diamonds;settleRun(p,run);assert.equal(p.coins,money);assert.equal(p.diamonds,gems);assert(unlocked(p,1));
+const replay=new Run();Object.assign(replay,{active:true,status:'finished',coins:4,gemIds:['frostpine:air1'],score:2500,nearMisses:10,time:35});const again=settleRun(p,replay);assert.equal(again.diamonds,0,'one-time gem and completion rewards cannot be replay-farmed');assert.equal(again.coins,29);assert.equal(p.completed[0].time,35);
+const failed=new Run(1);Object.assign(failed,{active:true,status:'crashed',coins:13,gemIds:['glacier:air1']});const haul=settleRun(p,failed);assert.equal(haul.coins,13);assert.equal(haul.diamonds,1);assert(!unlocked(p,2));
+const restored=createProfile(JSON.parse(JSON.stringify(p)));assert.deepEqual(restored.owned,p.owned);assert.equal(restored.coins,p.coins);assert.equal(restored.diamonds,p.diamonds);const freshRun=new Run(0,undefined,restored.claimed);assert(freshRun.pickups.filter(x=>x.type==='diamond'&&restored.claimed.includes(x.id)).every(x=>x.collected));
+const legacy={rider:2,level:2,completed:{0:{score:2200,time:39,medals:3},1:{score:2700,time:45,medals:2}}};const migrated=createProfile(null,legacy);assert.deepEqual(migrated.owned,['maya','kai','nova']);assert.equal(migrated.rider,2);assert.equal(migrated.level,2);assert(migrated.completed[0].rewarded);assert(migrated.completed[0].mastered);
+const malformed=createProfile({rider:999,level:-7,coins:-500,diamonds:NaN,owned:['x'],claimed:[null,12]});assert.equal(malformed.rider,0);assert.equal(malformed.coins,0);assert.equal(malformed.diamonds,0);assert.deepEqual(malformed.claimed,[]);
+console.log('PASS: purchases, insufficient funds, duplicate purchases, exactly-once settlement, rare rewards, replay farming, crash loot, reload, and v2 migration.');

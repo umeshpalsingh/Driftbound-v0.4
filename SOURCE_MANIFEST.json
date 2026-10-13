@@ -1,0 +1,30 @@
+{
+  "version": "0.4",
+  "source_commit": "3e8ab7b068443cf6cdc1399ff992448ea0fb11c2",
+  "files": {
+    ".gitignore": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97",
+    ".openai/hosting.json": "21b375b7c74e942a955bf8bb172d628a8c25b864025d8f90bde673f7f8167fb8",
+    "README.md": "7f8179da194bf1c5c87147177ae09de844ddb851ff422d373d688c7ec3761bb7",
+    "START_HERE.md": "0e4ea3221017866ff39281183acadc60ab1adfda24f7fab0a67bc7b20bdeb490",
+    "dist/engine.mjs": "6bda4f3a86f036e0db7a415ebb9279d76a939b28ed27c9344fab5dd04e529042",
+    "dist/game.mjs": "660ebbf18f72abc86e148a0a2d0a035ef69c2a3e77afbdfe567e62f10f077ea4",
+    "dist/icons/driftbound-180.png": "b20107167244636cafa6994f718870cfdb458bec1c6a407b3212538f609abce4",
+    "dist/icons/driftbound-192.png": "aec711b1b88329c57000b168214eee776e3d46fae37f6314c2237bd72b59bc3a",
+    "dist/icons/driftbound-512.png": "00e1d52ceeae0cd1f37e2cd6db36697ef436630ae428cbd95587953e7719450e",
+    "dist/index.html": "ab0c2f18e7751675374804b5c9d673a30efa3547b9ad7b375a4327359a86c1c5",
+    "dist/manifest.webmanifest": "ab6a976dfc2b8a949d28e0b80510684cc34663a7daee151d0b18407467975e2a",
+    "dist/profile.mjs": "36779ba308708ebb553165d47cd3300d1a361a3d70877f1094272d372bb0f9ed",
+    "dist/scene.mjs": "569f20c67e4803c88d7bd45fad4e8f1196e2ed04bc66d447d4ac19949e726cba",
+    "dist/style.css": "05f2d86d512fa5d213cce72645d2a8c4bab23087c4b96422116903388963a42c",
+    "dist/vendor/THREE-LICENSE.txt": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+    "dist/vendor/three.core.min.js": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+    "dist/vendor/three.module.min.js": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+    "package.json": "a86eb4da47a5ce47ebff2c0d7bbe3f1438735462a7bfa10c1fa4acab08f0f265",
+    "pnpm-lock.yaml": "4efcbe4f1b35006f1de268ecdbb50d1ad1cd4dad90e60e1106333584d03992c5",
+    "tests/engine.test.mjs": "d1d529b35f8bae0f681e69207d7ff6e2dbe05fabc38d397cc64e485daab87f4b",
+    "tests/launch.test.mjs": "5def88695cc455889ac1a3c4782703cadf99c93629c1614a00a1ae455f818cad",
+    "tests/profile.test.mjs": "7329cbc1986a87a1c4669bcd4ff0095e79617d7b2c9079caebe38102f645f893",
+    "tests/scene.test.mjs": "2380474a2cdaaaead1ae8faede5c539bae9bf804c079536422840663a2c42484",
+    "tests/ui.test.mjs": "7e640fda8716d9167c551ac5ae43438b9ff5e6c501a7ae0458cc669e39cde3d4"
+  }
+}

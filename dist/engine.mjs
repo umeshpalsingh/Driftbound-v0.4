@@ -1,0 +1,76 @@
+export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+export const lerp=(a,b,t)=>a+(b-a)*t;
+export function rng(seed){return ()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+export const RIDERS=[
+{id:'maya',name:'Maya',role:'THE TRAILBLAZER',jacket:0xe16b3f,pants:0x26303d,helmet:0x273c46,skin:0xb57651,scarf:0xffcc67,sled:0xc54c2f,coins:0,diamonds:0,style:'expedition',description:'Orange expedition shell, trail pack, and an old-school wood sled.'},
+{id:'kai',name:'Kai',role:'THE EXPLORER',jacket:0x2e807b,pants:0x293c46,helmet:0xf0e9d6,skin:0xdfac7b,scarf:0xdfa35c,sled:0x284a54,coins:300,diamonds:0,style:'mountaineer',description:'Teal insulated parka, cream beanie, rolled mat, and expedition straps.'},
+{id:'nova',name:'Nova',role:'THE FREERIDER',jacket:0xe5b63c,pants:0x363441,helmet:0x594e67,skin:0x875239,scarf:0xd9edc3,sled:0x70506c,coins:500,diamonds:3,style:'freerider',description:'Gold racing shell, violet mohawk helmet, knee pads, and a sport sled.'},
+{id:'sora',name:'Sora',role:'THE NIGHT RUNNER',jacket:0xc5d8eb,pants:0x253653,helmet:0x506384,skin:0xd79a73,scarf:0x76eee4,sled:0x283759,coins:750,diamonds:6,style:'tech',description:'Ice-blue tech suit, luminous piping, mirrored visor, and carbon sled.'},
+{id:'atlas',name:'Atlas',role:'THE MOUNTAIN GUIDE',jacket:0x68845b,pants:0x433c32,helmet:0xd0a36d,skin:0x865a42,scarf:0xc66741,sled:0x725033,coins:950,diamonds:8,style:'guide',description:'Olive fur-lined coat, rescue patches, cargo pockets, and a rope kit.'},
+{id:'rune',name:'Rune',role:'THE SUMMIT LEGEND',jacket:0x553e68,pants:0x242333,helmet:0x2e2538,skin:0xd7b091,scarf:0xf1b958,sled:0x543650,coins:1300,diamonds:12,style:'legend',description:'Violet long coat, gold armour details, split scarf, and an angular sled.'}
+];
+const themes={day:{sky:0xc3dbea,fog:0xd4e4ec,sun:0xffedcf,sunIntensity:3,accent:'#cbec9d'},ice:{sky:0x9cbdd6,fog:0xbdcfdf,sun:0xe4f2ff,sunIntensity:2.4,accent:'#a9d5ee'},sunset:{sky:0x7c849f,fog:0xadb0bd,sun:0xffb575,sunIntensity:2.8,accent:'#f4b48a'},night:{sky:0x384f72,fog:0x70849b,sun:0xadcbff,sunIntensity:2.1,accent:'#b9b5ef'}};
+const levelData=[
+['frostpine','Frostpine Ridge',650,17,21,32,8142,'day',1,8,['forest','flight','ice','ridge'],'Forest curves, big air, and an icy halfpipe.'],
+['glacier','Glacier Pass',900,20,25,31,3317,'ice',.4,12,['ice','flight','canyon','slalom','ridge'],'Blue ice, stone gates, and open air.'],
+['summit','Sunset Summit',1200,22,27,31,9736,'sunset',.8,16,['forest','chicane','flight','canyon','flight','ridge'],'Long golden curves above the valley.'],
+['cedar','Cedar Switchbacks',1100,21,26,30,4163,'day',1.3,25,['forest','chicane','flight','forest','slalom'],'Deep woods and sweeping S-bends.'],
+['crystal','Crystal Traverse',1400,23,28,32,5994,'ice',.35,21,['ice','canyon','flight','chicane','flight','ridge'],'Frozen ribbons and towering rock cuts.'],
+['ember','Ember Canyon',1500,24,29,32,7091,'sunset',.5,28,['canyon','flight','chicane','forest','flight','ridge'],'Warm cliffs. Fast lines. Big landings.'],
+['moonlight','Moonlight Grove',1600,24,29,31,8083,'night',1.1,25,['forest','slalom','flight','chicane','forest','flight','ridge'],'Moonlit evergreens and blue powder.'],
+['stormline','Stormline Peak',1750,25,30,32,9392,'ice',.65,30,['ridge','chicane','flight','canyon','ice','flight','ridge'],'High-altitude curves with no easy line.'],
+['crown','Crown Descent',2000,26,31,33,1193,'sunset',.9,32,['forest','chicane','flight','canyon','slalom','flight','ridge'],'The whole mountain. The final descent.']
+];
+export const LEVELS=levelData.map((a,i)=>({id:a[0],name:a[1],length:a[2],speed:a[3],maxSpeed:a[4],spacing:a[5],seed:a[6],theme:a[7],treeDensity:a[8],curve:a[9],sequence:a[10],description:a[11],tag:['FIRST TRACKS','INTO THE BLUE','GOLDEN HOUR','LOST IN THE PINES','THE FROZEN ROUTE','CHASE THE SUN','AFTER DARK','ABOVE THE CLOUDS','THE FINAL CHALLENGE'][i],goal:1500+i*450,difficulty:(i+1)+' / 9',...themes[a[7]]}));
+export const COURSE_LIMIT=7.7,GRAVITY=18;
+export const sectionNames={forest:'FOREST BENDS',flight:'BIG AIR',slalom:'SLALOM RUN',ridge:'SUMMIT RIDGE',chicane:'BANKED S-BENDS',ice:'ICE HALFPIPE',canyon:'ROCK CANYON'};
+export const sectionAt=(level,d)=>{const i=clamp(Math.floor(d/level.length*level.sequence.length),0,level.sequence.length-1);return {index:i,type:level.sequence[i],start:i*level.length/level.sequence.length,end:(i+1)*level.length/level.sequence.length};};
+export function trackCenter(d,level=LEVELS[0]){const t=Math.max(0,d),fade=Math.min(1,t/80);return level.curve*(Math.sin(t*.009)+.33*Math.sin(t*.021))*fade*fade;}
+export function trackSlope(d,level=LEVELS[0]){return(trackCenter(d+.1,level)-trackCenter(d-.1,level))/.2;}
+export function trackPoint(x,d,level=LEVELS[0]){const k=trackSlope(d,level),n=Math.sqrt(1+k*k);return {x:trackCenter(d,level)+x/n,z:-d+x*k/n,heading:-Math.atan(k)};}
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+// Feather the banking at both ends, so the physical surface and rendered ribbon
+// stay continuous when a forest opens into a halfpipe.
+export function trackBank(d,level=LEVELS[0]){const sec=sectionAt(level,d);if(!['ice','chicane'].includes(sec.type))return 0;return (sec.type==='ice'?4.8:3.3)*smooth((d-sec.start)/24)*smooth((sec.end-d)/24);}
+export const surfaceHeight=(x,d,level=LEVELS[0])=>-d*.045+Math.sin(d*.015)*.45+Math.sin(d*.032+x*.08)*.12+trackBank(d,level)*Math.pow(Math.min(1.25,Math.abs(x)/8.6),2.6);
+export const surfaceRoll=(x,d,level=LEVELS[0])=>Math.atan((surfaceHeight(x+.05,d,level)-surfaceHeight(x-.05,d,level))/.1);
+export const terrainHeight=(x,d,level=LEVELS[0])=>surfaceHeight(x,d,level)+Math.pow(Math.max(0,Math.abs(x)-9),1.15)*.2+(Math.abs(x)>10?Math.sin(d*.037+x*.08)*Math.min(3,(Math.abs(x)-9)*.1):0);
+export function buildCourse(level,seed=level.seed){const random=rng(seed),objects=[],rows=[],pickups=[],flights=[];let z=48,lastGap=0,row=0,id=0,pid=0;
+ for(let i=0;i<level.sequence.length;i++)if(level.sequence[i]==='flight'){const start=i*level.length/level.sequence.length;const rampZ=start+20,launch=12.3+(i%2)*1.1;flights.push({z:rampZ,x:0,launch,start:rampZ-12,end:Math.min(level.length-35,rampZ+95),id:'air'+i});objects.push({id:id++,x:0,z:rampZ,type:'ramp',halfWidth:1.45,depth:1.6,height:1.05,launch,passed:false});}
+ const slots=[-7.6,-5.1,-2.55,0,2.55,5.1,7.6];
+ while(z<level.length-42){const flight=flights.find(f=>z>=f.start&&z<f.end);if(flight){z=flight.end;continue;}const sec=sectionAt(level,z);let safe;
+ if(row%4===0){safe=(Math.floor(row/4)%2===0?-1:1)*3;for(const[a,b]of[[-8.7,safe-2.15],[safe+2.15,8.7]])objects.push({id:id++,x:(a+b)/2,z,type:'bank',halfWidth:(b-a)/2,depth:1.05,height:2.4,size:1,passed:false});}
+ else{const opts=[-2,-1,0,1,2].filter(n=>Math.abs(n*2.55-lastGap)<6.2),gap=opts[Math.floor(random()*opts.length)];safe=gap*2.55;for(let i=0;i<slots.length;i++){if(i===gap+3)continue;if(i!==0&&i!==6&&random()<.20)continue;const type=random()<(sec.type==='canyon'||sec.type==='ice'?.18:.68)?'tree':'rock';objects.push({id:id++,x:slots[i]+(random()-.5)*.2,z:z+(random()-.5)*.9,type,halfWidth:type==='tree'?.63:.85,depth:.7,height:type==='tree'?6:1,size:.9+random()*.2,passed:false});}}
+ rows.push({z,safe,section:sec.type});lastGap=safe;row++;z+=level.spacing+random()*5;
+ }
+ // Guide lines transition between the safe openings. Pickups near hazards are removed.
+ const guides=[{z:8,safe:0},...rows,...flights.map(f=>({z:f.z,safe:0})),...flights.map(f=>({z:f.end-12,safe:0})),{z:level.length-10,safe:0}].sort((a,b)=>a.z-b.z);
+ for(let i=0;i<guides.length-1;i++){const a=guides[i],b=guides[i+1];for(let d=a.z+5;d<b.z-2;d+=5){if(flights.some(f=>d>f.z-4&&d<f.end-10))continue;const t=clamp((d-a.z-3)/Math.max(1,b.z-a.z-6),0,1),x=lerp(a.safe,b.safe,t);if(objects.some(o=>o.type!=='ramp'&&Math.abs(o.z-d)<4&&Math.abs(o.x-x)<o.halfWidth+.7))continue;pickups.push({id:'coin'+pid++,type:'coin',x,z:d,y:.85,value:2,collected:false});}}
+ flights.forEach((f,i)=>{const v=Math.min(level.maxSpeed,level.speed+f.z/220);for(let t=.18;t<1.42;t+=.17){const d=f.z+1.6+v*t,y=1.05+f.launch*t-.5*GRAVITY*t*t+surfaceHeight(0,f.z,level)-surfaceHeight(0,d,level);if(y>.4)pickups.push({id:'coin'+pid++,type:'coin',x:0,z:d,y:y+.6,value:3,collected:false});}const t=f.launch/GRAVITY,d=f.z+1.6+v*t,y=1.05+f.launch*t-.5*GRAVITY*t*t+surfaceHeight(0,f.z,level)-surfaceHeight(0,d,level);pickups.push({id:level.id+':'+f.id,type:'diamond',x:i%2?2.1:-2.1,z:d,y:y+.6,value:1,collected:false});});
+ const powers=['magnet','shield','nitro','double'];for(let i=1;i<rows.length;i+=4){const a=rows[i],b=rows[i+1];if(!b||b.z-a.z>50)continue;pickups.push({id:'power'+pid++,type:powers[(Math.floor(i/4)+level.seed)%4],x:lerp(a.safe,b.safe,.5),z:lerp(a.z,b.z,.5),y:1.0,collected:false});}
+ return {objects:objects.sort((a,b)=>a.z-b.z),rows,pickups,flights};}
+export class Run{
+ constructor(levelIndex=0,seed,claimed=[]){this.level=LEVELS[levelIndex];this.levelIndex=levelIndex;const c=buildCourse(this.level,seed);Object.assign(this,{x:0,target:0,vx:0,distance:0,time:0,speed:this.level.speed,score:0,charge:0,boost:0,combo:1,comboTime:0,nearMisses:0,jumps:0,air:0,verticalY:surfaceHeight(0,0,this.level),vy:0,airTime:0,maxAir:0,landing:0,trick:0,trickTimer:0,tricks:0,rampLift:0,status:'riding',objects:c.objects,rows:c.rows,pickups:c.pickups,flights:c.flights,events:[],lastSteer:0,coins:0,diamonds:0,gemIds:[],magnet:0,shield:0,double:0,invulnerable:0,settled:false,section:0,active:false});for(const p of this.pickups)if(p.type==='diamond'&&claimed.includes(p.id))p.collected=true;}
+ get alive(){return this.status==='riding';}get airHeight(){return this.air?Math.max(0,this.verticalY-surfaceHeight(this.x,this.distance,this.level)):0;}get progress(){return clamp(this.distance/this.level.length,0,1);}get medals(){return 1+(this.score>=this.level.goal?1:0)+(this.nearMisses>=8?1:0);}
+ prepareLaunch(){if(this.active)return false;this.status='aiming';this.speed=0;this.launchPower=0;this.launchSurge=0;this.launchRecoil=0;return true;}
+ pullLaunch(power){if(this.status!=='aiming')return false;this.launchPower=clamp(Number.isFinite(power)?power:0,0,1);return true;}
+ cancelLaunch(){if(this.status==='aiming')this.launchPower=0;}
+ launch(){if(this.status!=='aiming'||this.launchPower<.12)return false;const power=this.launchPower;this.status='riding';this.distance=-power*4.5;this.verticalY=surfaceHeight(0,this.distance,this.level);this.launchSurge=3+power*9;this.speed=this.level.speed+this.launchSurge;this.launchRecoil=.65;this.emit('launch',power);return true;}
+ emit(type,value){this.events.push({type,value});}
+ spin(){if(this.air&&this.airHeight>1.4&&this.trick===0&&this.vy>-5){this.trick=1;this.trickTimer=0;this.emit('spin',0);return true;}return false;}
+ step(dt,input=0){this.events=[];if(!this.alive)return;let left=clamp(dt,0,.15);while(left>0&&this.alive){const slice=Math.min(left,1/90);this.tick(slice,input);left-=slice;}}
+ tick(dt,input){this.time+=dt;this.active=true;if(input)this.target=clamp(this.target+input*dt*(this.air?8:13),-COURSE_LIMIT,COURSE_LIMIT);this.target=clamp(this.target,-COURSE_LIMIT,COURSE_LIMIT);const oldX=this.x;if(this.air){this.vx=lerp(this.vx,clamp((this.target-this.x)*3,-7,7),1-Math.exp(-dt*2.6));this.x=clamp(this.x+this.vx*dt,-COURSE_LIMIT,COURSE_LIMIT);}else{this.x=lerp(this.x,this.target,1-Math.exp(-8.5*dt));this.vx=(this.x-oldX)/dt;}this.lastSteer=(this.x-oldX)/dt;
+ for(const k of ['boost','comboTime','magnet','shield','double','invulnerable','landing'])this[k]=Math.max(0,this[k]-dt);if(!this.comboTime)this.combo=1;
+ this.launchSurge=(this.launchSurge||0)*Math.exp(-dt*1.3);this.launchRecoil=Math.max(0,(this.launchRecoil||0)-dt);
+ const wanted=Math.min(this.level.maxSpeed,this.level.speed+Math.max(0,this.distance)/220)+(this.boost>0?8:0)+(this.launchSurge||0);this.speed=lerp(this.speed,wanted,Math.min(1,dt*3));const oldD=this.distance;this.distance=Math.min(this.level.length,this.distance+this.speed*dt);this.score+=(Math.max(0,this.distance)-Math.max(0,oldD))*this.combo;
+ if(this.air){this.verticalY+=this.vy*dt-.5*GRAVITY*dt*dt;this.vy-=GRAVITY*dt;this.airTime+=dt;this.maxAir=Math.max(this.maxAir,this.airHeight);if(this.trick)this.trickTimer+=dt;if(this.verticalY<=surfaceHeight(this.x,this.distance,this.level)&&this.vy<0){this.air=0;this.verticalY=surfaceHeight(this.x,this.distance,this.level);this.landing=.45;this.score+=Math.round(this.airTime*80);if(this.trick&&this.trickTimer>=.65){this.tricks++;this.score+=250;this.coins+=5;this.emit('trick',250);}else this.emit('land',this.airTime);this.trick=0;this.vy=0;}}
+ else {this.rampLift=0;this.verticalY=surfaceHeight(this.x,this.distance,this.level);}
+ const sec=sectionAt(this.level,this.distance);if(sec.index!==this.section){this.section=sec.index;this.emit('section',sec.type);}
+ for(const o of this.objects){if(o.passed)continue;if(o.z-o.depth>this.distance+.5)break;const award=()=>{if(o.minClear>=0&&o.minClear<.75){this.nearMisses++;this.combo=clamp(this.combo+1,1,5);this.comboTime=4.5;this.score+=100*this.combo;this.charge+=34;this.emit('near',this.combo);}o.passed=true;};if(o.z+o.depth<oldD){award();continue;}if(o.z-o.depth>this.distance)continue;const a=clamp((o.z-o.depth-oldD)/(this.distance-oldD||1),0,1),b=clamp((o.z+o.depth-oldD)/(this.distance-oldD||1),0,1);const xa=lerp(oldX,this.x,a)-o.x,xb=lerp(oldX,this.x,b)-o.x,dx=xa*xb<=0?0:Math.min(Math.abs(xa),Math.abs(xb)),hit=o.halfWidth+.34;
+ if(o.type==='ramp'){if(dx<o.halfWidth&&!this.air){this.rampLift=clamp((this.distance-o.z+o.depth)/(o.depth*2),0,1)*o.height;this.verticalY=surfaceHeight(this.x,this.distance,this.level)+this.rampLift;if(this.distance>=o.z+o.depth){this.air=1;this.verticalY=surfaceHeight(this.x,this.distance,this.level)+o.height;this.vy=o.launch;this.airTime=0;this.maxAir=0;this.trick=0;this.trickTimer=0;this.jumps++;this.score+=100;this.charge+=15;this.emit('jump',o.launch);o.passed=true;}}else if(this.distance>o.z+o.depth)o.passed=true;continue;}
+ if(dx<hit&&this.airHeight<o.height){if(this.invulnerable>0){o.passed=true;continue;}if(this.shield>0){this.shield=0;this.invulnerable=1.3;o.passed=true;this.emit('save',0);continue;}this.status='crashed';this.emit('crash',o.type);break;}
+ if(!this.air)o.minClear=Math.min(o.minClear??Infinity,dx-hit);if(this.distance>o.z+o.depth)award();}
+ if(this.alive)for(const p of this.pickups){if(p.collected)continue;const dz=p.z-this.distance,dx=Math.abs(p.x-this.x),dy=Math.abs(p.y-(this.airHeight+.7));const magnetic=p.type==='coin'&&this.magnet>0;const radial=magnetic?4.4:1.05,depth=magnetic?6:1.5,height=magnetic?3.8:1.45;if(Math.abs(dz)<depth&&dx<radial&&dy<height){p.collected=true;if(p.type==='coin'){const value=p.value*(this.double>0?2:1);this.coins+=value;this.emit('coin',value);}else if(p.type==='diamond'){this.diamonds++;this.gemIds.push(p.id);this.emit('diamond',1);}else if(p.type==='nitro'){this.boost=Math.min(4.5,this.boost+3);this.emit('power','nitro');}else{this[p.type]=p.type==='shield'?15:9;this.emit('power',p.type);}}}
+ if(this.alive&&this.charge>=100){this.charge=0;this.boost=3.2;this.emit('boost',0);}if(this.alive&&this.distance>=this.level.length){this.status='finished';this.emit('finish',this.medals);}
+ }
+}

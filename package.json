@@ -1,0 +1,11 @@
+{
+  "name": "driftbound",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/engine.test.mjs && node tests/launch.test.mjs && node tests/profile.test.mjs && node tests/scene.test.mjs && node tests/ui.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  }
+}
